@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Overage Finder</title>
+<title>Back Office Overage Finder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛽</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@600;700&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#E9EFEE; --paper:#F8FBFA; --ink:#1C2B33; --muted:#5B6B72; --line:#C9D8D4;
-  --rule:#DCE8E4; --accent:#E8A317; --accent-ink:#5A3E00; --hit:#FFF1C9;
-  --over:#1F7A4D; --short:#C2412D; --btn:#1C2B33; --btn-ink:#F8FBFA;
+  --bg:#E4E8EB; --paper:#FFFFFF; --ink:#14212B; --muted:#56646E; --line:#C5CED4;
+  --rule:#E3E8EB; --accent:#FFB21E; --accent-ink:#4A3200; --hit:#FFF3D6;
+  --over:#1E7F5C; --short:#C23B2B; --btn:#0F5E6E; --btn-ink:#FFFFFF;
+  --sign:#0D1820; --sign-edge:#24343F; --led:#FFB21E; --led-dim:#5C4410; --stripe:#0F5E6E;
   color-scheme:light;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
@@ -19,15 +21,17 @@
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#11191D; --paper:#18242A; --ink:#E4ECEA; --muted:#9AAAB0; --line:#2E3E45;
-    --rule:#223139; --accent:#F0B53A; --accent-ink:#1A1200; --hit:#3A3010;
-    --over:#5CC892; --short:#F07A63; --btn:#E4ECEA; --btn-ink:#11191D; color-scheme:dark;
+    --bg:#0B1217; --paper:#141F27; --ink:#E6ECEF; --muted:#98A6AF; --line:#2A3A45;
+    --rule:#1D2A33; --accent:#FFB21E; --accent-ink:#1A1200; --hit:#3A2E10;
+    --over:#5CCB9E; --short:#F27A66; --btn:#2A9BB0; --btn-ink:#06141A;
+    --sign:#05090C; --sign-edge:#24343F; --led:#FFB21E; --led-dim:#4A3610; --stripe:#2A9BB0; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#11191D; --paper:#18242A; --ink:#E4ECEA; --muted:#9AAAB0; --line:#2E3E45;
-  --rule:#223139; --accent:#F0B53A; --accent-ink:#1A1200; --hit:#3A3010;
-  --over:#5CC892; --short:#F07A63; --btn:#E4ECEA; --btn-ink:#11191D; color-scheme:dark;
+  --bg:#0B1217; --paper:#141F27; --ink:#E6ECEF; --muted:#98A6AF; --line:#2A3A45;
+  --rule:#1D2A33; --accent:#FFB21E; --accent-ink:#1A1200; --hit:#3A2E10;
+  --over:#5CCB9E; --short:#F27A66; --btn:#2A9BB0; --btn-ink:#06141A;
+  --sign:#05090C; --sign-edge:#24343F; --led:#FFB21E; --led-dim:#4A3610; --stripe:#2A9BB0; color-scheme:dark;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
@@ -38,8 +42,16 @@ h1{font-size:2rem}
 h2{font-size:1.35rem;margin-bottom:6px}
 p{margin:0 0 10px}
 .muted{color:var(--muted);font-size:.92rem}
-.tape{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:20px;margin:16px 0 24px;
-  background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--rule) 31px 32px)}
+.tape{background:var(--sign);color:#E6ECEF;border:6px solid var(--sign-edge);border-radius:10px;padding:20px;margin:16px 0 24px;box-shadow:inset 0 0 0 1px #000}
+.tape label{color:#AEBBC3}
+.tape input,.tape select{background:#16232C;color:#F2F5F7;border-color:#33464F}
+.tape .muted{color:#AEBBC3}
+.tape .big{font-family:"Orbitron","Arial Black",system-ui,sans-serif;font-weight:800;color:var(--led);text-shadow:0 0 12px rgba(255,178,30,.45);letter-spacing:.02em;background:#000;display:inline-block;padding:10px 16px;border-radius:4px;border:1px solid #2B2B2B}
+.tape .big .dir{font-size:.45em;margin-left:.4em;vertical-align:middle;padding:3px 8px;border-radius:3px;background:var(--led-dim);color:var(--led)}
+.tape .big.short{color:#FF5A47;text-shadow:0 0 12px rgba(255,90,71,.45)}
+.tape .big.short .dir{background:#4A1A14;color:#FF5A47}
+.topbar{border-top:8px solid var(--stripe);margin:-20px -16px 18px;padding:16px 16px 0}
+.topbar small{display:block;color:var(--muted);font-size:.9rem}
 .target{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-top:12px}
 .big{font-size:2.6rem;font-weight:700;letter-spacing:-.02em;line-height:1}
 .over{color:var(--over)} .short{color:var(--short)}
@@ -79,7 +91,7 @@ footer{margin-top:24px}
 </head>
 <body>
 <main>
-  <h1>Overage Finder</h1>
+  <div class="topbar"><h1>Back Office Overage Finder</h1><small>For store managers closing out the day</small></div>
   <p class="muted">Enter what the paperwork shows, list the entries, and the tool hunts for the one entry (or combination) that explains the difference. Everything saves on this device.</p>
 
   <div class="tape">
@@ -225,7 +237,7 @@ function compute(){
 
   // Header
   const big = $("bigDiff");
-  big.textContent = target ? `${money(target)} ${state.dir}` : "Enter the amount";
+  big.innerHTML = target ? `${money(target)}<span class="dir">${state.dir.toUpperCase()}</span>` : "– – – –";
   big.className = "big " + (state.dir==="over" ? "over" : "short");
 
   // Pattern note
