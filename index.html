@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Overage Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EFEE; --paper:#F8FBFA; --ink:#1C2B33; --muted:#5B6B72; --line:#C9D8D4;
+  --rule:#DCE8E4; --accent:#E8A317; --accent-ink:#5A3E00; --hit:#FFF1C9;
+  --over:#1F7A4D; --short:#C2412D; --btn:#1C2B33; --btn-ink:#F8FBFA;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#11191D; --paper:#18242A; --ink:#E4ECEA; --muted:#9AAAB0; --line:#2E3E45;
+    --rule:#223139; --accent:#F0B53A; --accent-ink:#1A1200; --hit:#3A3010;
+    --over:#5CC892; --short:#F07A63; --btn:#E4ECEA; --btn-ink:#11191D; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11191D; --paper:#18242A; --ink:#E4ECEA; --muted:#9AAAB0; --line:#2E3E45;
+  --rule:#223139; --accent:#F0B53A; --accent-ink:#1A1200; --hit:#3A3010;
+  --over:#5CC892; --short:#F07A63; --btn:#E4ECEA; --btn-ink:#11191D; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums}
+main{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+h1,h2{font-family:"Archivo Narrow","Arial Narrow",system-ui,sans-serif;margin:0;line-height:1.15}
+h1{font-size:2rem}
+h2{font-size:1.35rem;margin-bottom:6px}
+p{margin:0 0 10px}
+.muted{color:var(--muted);font-size:.92rem}
+.tape{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:20px;margin:16px 0 24px;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--rule) 31px 32px)}
+.target{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-top:12px}
+.big{font-size:2.6rem;font-weight:700;letter-spacing:-.02em;line-height:1}
+.over{color:var(--over)} .short{color:var(--short)}
+section{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:18px;margin-bottom:18px}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:3px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:4px;border:1px solid var(--btn);background:var(--btn);color:var(--btn-ink);padding:8px 14px}
+button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+button.chip{background:transparent;color:var(--ink);border:1px dashed var(--line);font-weight:500;padding:5px 10px;font-size:.88rem}
+button.x{background:transparent;color:var(--muted);border:none;padding:6px 8px;font-size:1.1rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th{text-align:left;font-size:.82rem;color:var(--muted);font-weight:500;padding:6px 4px;border-bottom:1px solid var(--line)}
+td{padding:4px;border-bottom:1px solid var(--rule)}
+td input,td select{width:100%}
+td.amt input{text-align:right}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px}
+.totals div{border-left:3px solid var(--line);padding-left:10px}
+.totals strong{display:block;font-size:1.25rem}
+.result{border-left:4px solid var(--accent);background:var(--hit);padding:10px 12px;border-radius:0 4px 4px 0;margin:8px 0}
+.result b{color:var(--ink)}
+.none{color:var(--muted);font-style:italic;margin:8px 0}
+.group{margin-top:14px}
+.group h3{font-size:1rem;margin:0 0 4px}
+.check{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--rule)}
+.check input{margin-top:4px;width:18px;height:18px;flex:none}
+.check.done span{color:var(--muted);text-decoration:line-through}
+.bar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--accent)}
+footer{margin-top:24px}
+@media (max-width:560px){.big{font-size:2.1rem} h1{font-size:1.7rem}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Overage Finder</h1>
+  <p class="muted">Enter what the paperwork shows, list the entries, and the tool hunts for the one entry (or combination) that explains the difference. Everything saves on this device.</p>
+
+  <div class="tape">
+    <div class="target">
+      <div>
+        <label for="diff">Paperwork is off by</label>
+        <input id="diff" type="number" step="0.01" inputmode="decimal" style="width:150px">
+      </div>
+      <div>
+        <label for="dir">Direction</label>
+        <select id="dir"><option value="over">Over</option><option value="short">Short</option></select>
+      </div>
+      <div>
+        <label for="tol">Match within ±</label>
+        <input id="tol" type="number" step="0.01" inputmode="decimal" style="width:100px">
+      </div>
+    </div>
+    <p class="big" id="bigDiff" style="margin-top:16px"></p>
+    <p class="muted" id="patternNote"></p>
+  </div>
+
+  <section>
+    <h2>Entries from the paperwork</h2>
+    <p class="muted">Type in every line you can: safe drops, deposits, lottery, money orders, paid outs, card totals. “Should have” is what sales say you should have; “Accounted for” is the money and receipts you can show.</p>
+    <div class="chips" id="presets"></div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:44%">Description</th><th style="width:26%">Side</th><th style="width:22%;text-align:right">Amount</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="row-actions">
+      <button id="addRow">Add entry</button>
+      <button class="ghost" id="useCalc">Use my entries’ difference as the target</button>
+    </div>
+    <div class="totals">
+      <div><span class="muted">Should have</span><strong id="tShould">$0.00</strong></div>
+      <div><span class="muted">Accounted for</span><strong id="tHave">$0.00</strong></div>
+      <div><span class="muted">From your entries</span><strong id="tDiff">$0.00</strong></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Possible causes</h2>
+    <p class="muted">Matches update as you type. Check the highlighted entries against the receipts and logs first.</p>
+    <div id="results"></div>
+  </section>
+
+  <section>
+    <h2>Shift by shift</h2>
+    <p class="muted">Enter each shift’s over/short. If one shift carries most of the difference, start there. Use a minus sign for short.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:50%">Shift or cashier</th><th style="width:30%;text-align:right">Over / short</th><th></th></tr></thead>
+        <tbody id="shiftRows"></tbody>
+      </table>
+    </div>
+    <div class="row-actions"><button id="addShift">Add shift</button></div>
+    <div id="shiftResult"></div>
+  </section>
+
+  <section>
+    <h2>Things to check</h2>
+    <p class="muted">Tick each one off as you rule it out.</p>
+    <div id="checklist"></div>
+  </section>
+
+  <footer class="row-actions">
+    <button class="ghost" id="reset">Clear everything and start a new day</button>
+  </footer>
+</main>
+
+<script>
+const KEY = "overage-finder-v1";
+const PRESETS = [
+  ["Total sales (inside)","should"],["Fuel sales","should"],["Lottery sales","should"],["Money order sales","should"],
+  ["Money order fees","should"],["Bill pay","should"],["Gift card activations","should"],
+  ["Safe drops","have"],["Deposit","have"],["Credit / debit cards","have"],["Lottery payouts","have"],
+  ["Paid outs","have"],["Vendor invoices","have"],["Drive-offs","have"],["Change fund / bank loan","have"]
+];
+const CHECKS = [
+  "A safe drop counted in the safe and again in the deposit",
+  "A previous day’s deposit still sitting in the safe and counted today",
+  "A deposit bag entered twice",
+  "Lottery settlement posted on the wrong day",
+  "Instant lottery packs activated or settled but not entered",
+  "Lottery payouts or cashed tickets missing from the paperwork",
+  "Money order batch entered twice, or sales and fees lines mixed up",
+  "A paid out rung in the register but its receipt not entered",
+  "A vendor invoice on the wrong line or missing",
+  "Change fund or bank loan counted as sales cash",
+  "A shift report left open, or one shift pulled twice",
+  "Pump tests, drive-offs or a fuel adjustment on the wrong side",
+  "Gift or prepaid card activations whose cash went into a different total"
+];
+
+let state = load() || {
+  diff: 3491, dir: "over", tol: 1,
+  rows: [{d:"",s:"have",a:""}],
+  shifts: [{n:"",v:""}],
+  checks: {}
+};
+
+function load(){ try{ const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+const money = n => (n<0?"−":"") + "$" + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const num = v => { const n = parseFloat(String(v).replace(/[$,\s]/g,"")); return isFinite(n) ? n : null; };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $ = id => document.getElementById(id);
+
+function renderRows(){
+  $("rows").innerHTML = state.rows.map((r,i)=>`
+    <tr>
+      <td><input aria-label="Description" data-i="${i}" data-f="d" value="${esc(r.d)}" placeholder="e.g. Safe drop #3"></td>
+      <td><select aria-label="Side" data-i="${i}" data-f="s">
+        <option value="should"${r.s==="should"?" selected":""}>Should have</option>
+        <option value="have"${r.s==="have"?" selected":""}>Accounted for</option></select></td>
+      <td class="amt"><input aria-label="Amount" data-i="${i}" data-f="a" inputmode="decimal" value="${esc(r.a)}" placeholder="0.00"></td>
+      <td><button class="x" aria-label="Remove entry" data-del="${i}">×</button></td>
+    </tr>`).join("");
+}
+function renderShifts(){
+  $("shiftRows").innerHTML = state.shifts.map((r,i)=>`
+    <tr>
+      <td><input aria-label="Shift" data-si="${i}" data-f="n" value="${esc(r.n)}" placeholder="e.g. 1st shift – Maria"></td>
+      <td class="amt"><input aria-label="Over or short" data-si="${i}" data-f="v" inputmode="decimal" value="${esc(r.v)}" placeholder="0.00"></td>
+      <td><button class="x" aria-label="Remove shift" data-sdel="${i}">×</button></td>
+    </tr>`).join("");
+}
+function renderChecks(){
+  $("checklist").innerHTML = CHECKS.map((c,i)=>`
+    <label class="check${state.checks[i]?" done":""}"><input type="checkbox" data-c="${i}"${state.checks[i]?" checked":""}><span>${c}</span></label>`).join("");
+}
+
+function entries(){
+  return state.rows.map((r,i)=>({i, d:r.d.trim()||`Entry ${i+1}`, s:r.s, a:num(r.a)})).filter(e=>e.a!==null && e.a!==0);
+}
+
+function compute(){
+  const target = Math.abs(num(state.diff) || 0);
+  const tol = Math.abs(num(state.tol) ?? 1);
+  const es = entries();
+
+  // Header
+  const big = $("bigDiff");
+  big.textContent = target ? `${money(target)} ${state.dir}` : "Enter the amount";
+  big.className = "big " + (state.dir==="over" ? "over" : "short");
+
+  // Pattern note
+  const cents = Math.round(target*100);
+  let notes = [];
+  if (cents && cents % 900 === 0) notes.push("The amount divides evenly by 9, so a transposed number (like 63 typed as 36) is possible.");
+  else if (cents) notes.push("The amount doesn’t divide by 9, so swapped digits are unlikely. Look for a whole entry that was doubled, left out, or put on the wrong side.");
+  $("patternNote").textContent = notes.join(" ");
+
+  // Totals
+  const should = es.filter(e=>e.s==="should").reduce((t,e)=>t+e.a,0);
+  const have = es.filter(e=>e.s==="have").reduce((t,e)=>t+e.a,0);
+  const cd = have - should;
+  $("tShould").textContent = money(should);
+  $("tHave").textContent = money(have);
+  $("tDiff").textContent = cd===0 ? "$0.00 (balanced)" : `${money(Math.abs(cd))} ${cd>0?"over":"short"}`;
+  $("tDiff").className = cd>0 ? "over" : cd<0 ? "short" : "";
+
+  // Results
+  const out = [];
+  const near = (x,y)=>Math.abs(x-y)<=tol;
+  const tag = e=>`<b>${esc(e.d)}</b> (${money(e.a)}, ${e.s==="should"?"should have":"accounted for"})`;
+
+  if (!target){ $("results").innerHTML = `<p class="none">Enter the amount the paperwork is off by.</p>`; return; }
+  if (!es.length){ $("results").innerHTML = `<p class="none">Add the entries from your paperwork above and matches will show up here.</p>`; return; }
+
+  const singles = es.filter(e=>near(e.a,target));
+  singles.forEach(e=>out.push(["Exact match", `${tag(e)} is the same size as the difference. It was likely entered twice${state.dir==="over"?" on the accounted-for side, or left off the should-have side":" on the should-have side, or left off the accounted-for side"}.`]));
+
+  const halves = es.filter(e=>near(e.a*2,target));
+  halves.forEach(e=>out.push(["Wrong side", `${tag(e)} is half the difference. An entry put on the wrong side throws the paperwork off by twice its amount.`]));
+
+  const slips = es.filter(e=>near(e.a*9,target) || near(e.a*99,target) || near(e.a*0.9,target) || near(e.a*0.99,target));
+  slips.forEach(e=>out.push(["Decimal slip", `${tag(e)} fits a misplaced decimal point (for example ${money(e.a)} entered as ${money(e.a*10)} or ${money(e.a/10)}).`]));
+
+  // duplicates
+  const seen = {};
+  es.forEach(e=>{ const k=e.a.toFixed(2); (seen[k]=seen[k]||[]).push(e); });
+  Object.values(seen).filter(g=>g.length>1).forEach(g=>out.push(["Same amount twice", `${g.map(tag).join(" and ")} have the same amount. Make sure this isn’t one drop or deposit counted twice.`]));
+
+  // pairs and triples
+  const combos = [];
+  const n = es.length;
+  for (let a=0;a<n;a++) for (let b=a+1;b<n;b++){
+    if (near(es[a].a+es[b].a,target)) combos.push([es[a],es[b]]);
+    if (combos.length>6) break;
+  }
+  if (n<=60 && combos.length<6){
+    for (let a=0;a<n;a++) for (let b=a+1;b<n;b++) for (let c=b+1;c<n;c++){
+      if (near(es[a].a+es[b].a+es[c].a,target)) combos.push([es[a],es[b],es[c]]);
+      if (combos.length>6) break;
+    }
+  }
+  combos.slice(0,6).forEach(g=>out.push(["Combination", `${g.map(tag).join(" + ")} add up to ${money(g.reduce((t,e)=>t+e.a,0))}. A group of entries (like a full day’s drops) may have been counted twice or skipped.`]));
+
+  // computed difference check
+  if (Math.abs(cd)>0.004 && !near(Math.abs(cd),target)){
+    out.push(["Entries don’t match paperwork", `Your entries show ${money(Math.abs(cd))} ${cd>0?"over":"short"}, but the paperwork says ${money(target)} ${state.dir}. The gap of ${money(Math.abs(Math.abs(cd)-target))} may be an entry you haven’t typed in yet, or one the system has that you don’t.`]);
+  } else if (Math.abs(cd)>0.004 && near(Math.abs(cd),target)) {
+    out.push(["Entries match paperwork", `Your entries reproduce the same ${money(target)} difference, so the problem is among the lines above. Recount the matches listed here against the actual receipts, bags and logs.`]);
+  }
+
+  $("results").innerHTML = out.length
+    ? out.map(([h,t])=>`<div class="result"><div class="muted" style="font-weight:600">${h}</div>${t}</div>`).join("")
+    : `<p class="none">No single entry, half entry or combination matches ${money(target)} yet. Keep adding lines, especially drops, deposits and lottery.</p>`;
+
+  // Shifts
+  const sh = state.shifts.map(s=>({n:s.n.trim()||"Unnamed shift", v:num(s.v)})).filter(s=>s.v!==null);
+  if (sh.length){
+    const totalAbs = sh.reduce((t,s)=>t+Math.abs(s.v),0) || 1;
+    const top = sh.reduce((m,s)=>Math.abs(s.v)>Math.abs(m.v)?s:m, sh[0]);
+    const share = Math.abs(top.v)/totalAbs;
+    $("shiftResult").innerHTML = `<div class="group">${sh.map(s=>`
+      <div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;gap:10px"><span>${esc(s.n)}</span><span class="${s.v>0?"over":s.v<0?"short":""}">${s.v===0?"$0.00":money(Math.abs(s.v))+(s.v>0?" over":" short")}</span></div>
+      <div class="bar"><i style="width:${(Math.abs(s.v)/totalAbs*100).toFixed(1)}%"></i></div></div>`).join("")}
+      ${share>=0.7 && Math.abs(top.v)>0 ? `<div class="result"><b>${esc(top.n)}</b> carries ${Math.round(share*100)}% of the difference. Pull that shift’s drop log, register report and safe count first.</div>` : `<p class="muted">The difference is spread across shifts, which points more toward a day-level entry (deposit, lottery settlement, money orders) than one cashier.</p>`}
+    </div>`;
+  } else $("shiftResult").innerHTML = "";
+}
+
+function renderAll(){
+  $("diff").value = state.diff; $("dir").value = state.dir; $("tol").value = state.tol;
+  renderRows(); renderShifts(); renderChecks(); compute();
+}
+
+// Presets
+$("presets").innerHTML = PRESETS.map(([d,s],i)=>`<button class="chip" data-p="${i}">+ ${d}</button>`).join("");
+$("presets").addEventListener("click",e=>{
+  const p = e.target.closest("[data-p]"); if(!p) return;
+  const [d,s] = PRESETS[p.dataset.p];
+  const blank = state.rows.findIndex(r=>!r.d && !r.a);
+  if (blank>-1) state.rows[blank] = {d,s,a:""}; else state.rows.push({d,s,a:""});
+  save(); renderRows(); compute();
+  const idx = blank>-1 ? blank : state.rows.length-1;
+  const el = document.querySelector(`[data-i="${idx}"][data-f="a"]`); if (el) el.focus();
+});
+
+["diff","dir","tol"].forEach(id=>$(id).addEventListener("input",e=>{ state[id]=e.target.value; save(); compute(); }));
+
+$("rows").addEventListener("input",e=>{ const t=e.target; if(t.dataset.i===undefined) return; state.rows[t.dataset.i][t.dataset.f]=t.value; save(); compute(); });
+$("rows").addEventListener("click",e=>{ const b=e.target.closest("[data-del]"); if(!b) return; state.rows.splice(b.dataset.del,1); if(!state.rows.length) state.rows.push({d:"",s:"have",a:""}); save(); renderRows(); compute(); });
+$("addRow").addEventListener("click",()=>{ state.rows.push({d:"",s:"have",a:""}); save(); renderRows(); compute(); document.querySelector(`[data-i="${state.rows.length-1}"][data-f="d"]`).focus(); });
+$("useCalc").addEventListener("click",()=>{
+  const es = entries();
+  const cd = es.filter(e=>e.s==="have").reduce((t,e)=>t+e.a,0) - es.filter(e=>e.s==="should").reduce((t,e)=>t+e.a,0);
+  if (!cd) return;
+  state.diff = Math.abs(cd).toFixed(2); state.dir = cd>0?"over":"short"; save(); renderAll();
+});
+
+$("shiftRows").addEventListener("input",e=>{ const t=e.target; if(t.dataset.si===undefined) return; state.shifts[t.dataset.si][t.dataset.f]=t.value; save(); compute(); });
+$("shiftRows").addEventListener("click",e=>{ const b=e.target.closest("[data-sdel]"); if(!b) return; state.shifts.splice(b.dataset.sdel,1); if(!state.shifts.length) state.shifts.push({n:"",v:""}); save(); renderShifts(); compute(); });
+$("addShift").addEventListener("click",()=>{ state.shifts.push({n:"",v:""}); save(); renderShifts(); compute(); });
+
+$("checklist").addEventListener("change",e=>{ const c=e.target.dataset.c; if(c===undefined) return; state.checks[c]=e.target.checked; save(); renderChecks(); });
+
+$("reset").addEventListener("click",()=>{
+  if (!confirm("Clear all entries, shifts and checkmarks?")) return;
+  state = {diff:"",dir:"over",tol:1,rows:[{d:"",s:"have",a:""}],shifts:[{n:"",v:""}],checks:{}};
+  save(); renderAll();
+});
+
+renderAll();
+</script>
+</body>
+</html>
